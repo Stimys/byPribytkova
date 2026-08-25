@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Anastasiia [ by.pribytkova]</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #120b09;       
+  --blue: #00e5ff;          
+  --blue-soft: #9edff3;     
+  --cream: #f5eee6;         
+  --muted: #a3918a;         
+  --line: rgba(158, 223, 243, 0.12);
+  --film-bg: #0a0605;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; cursor: none; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-dark); 
+  color: var(--cream);
+  font-family: "DM Sans", sans-serif; 
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a, button { text-decoration: none; color: inherit; outline: none; }
+::selection { background: var(--blue); color: var(--bg-dark); }
+
+/* =========================================
+   ПРЕЛОАДЕР (ЦЕНТРИРОВАННАЯ ЛАЗЕРНАЯ ВСПЫШКА)
+========================================= */
+#preloader {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-dark);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transition: opacity 0.6s cubic-bezier(0.65, 0, 0.35, 1), transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), filter 0.6s ease;
+}
+
+#preloader.loaded {
+  opacity: 0;
+  transform: scale(1.04);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.preloader-content {
+  text-align: center;
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.preloader-brand {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: preloaderTextIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.15s;
+}
+
+.pre-name {
+  font: 700 clamp(38px, 8vw, 82px)/1 "DM Sans", sans-serif;
+  color: var(--cream);
+  letter-spacing: -1.5px;
+}
+
+.pre-sub {
+  font: 500 clamp(13px, 2.4vw, 24px)/1.2 "Space Grotesk", sans-serif;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+
+.preloader-line {
+  position: absolute;
+  top: calc(100% + 18px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 100vw;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 5%, var(--blue) 50%, transparent 95%);
+  box-shadow: 0 0 15px var(--blue), 0 0 35px var(--blue);
+  transform: scaleX(0);
+  transform-origin: center center;
+  animation: 
+    laserScale 1.25s cubic-bezier(0.78, 0.02, 0.12, 1) forwards 0.15s,
+    laserFade 1.25s ease-in-out forwards 0.15s;
+}
+
+@keyframes preloaderTextIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes laserScale {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes laserFade {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Эффект пленочного шума */
+.noise {
+  position: fixed; inset: 0; pointer-events: none; opacity: 0.08; z-index: 20;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+/* Геометрическая сетка */
+.grid-bg {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0;
+  background-image: 
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 100%);
+}
+
+/* Кастомный курсор */
+.cursor-dot, .cursor-outline {
+  position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+  border-radius: 50%; z-index: 9999; pointer-events: none;
+}
+.cursor-dot { width: 8px; height: 8px; background-color: var(--blue); transition: transform 0.2s; }
+.cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(0, 229, 255, 0.5); transition: width 0.2s, height 0.2s, background-color 0.2s; }
+
+/* Навигация */
+nav {
+  position: fixed; top: 0; left: 0; width: 100%; z-index: 10;
+  padding: 18px 5vw; display: flex; justify-content: space-between; align-items: center;
+  background: rgba(18, 11, 9, 0.75); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  transition: padding 0.4s;
+}
+
+/* ЛОГОТИП */
+.logo { 
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-decoration: none;
+  line-height: 1;
+}
+.logo-name {
+  font: 700 25px/1 "DM Sans", sans-serif;
+  color: var(--cream);
+  letter-spacing: -0.6px;
+  transition: color 0.3s ease;
+}
+.logo-sub {
+  font: 500 11.5px/1.2 "Space Grotesk", sans-serif;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+  margin-top: 3px;
+  transition: color 0.3s ease;
+}
+.logo:hover .logo-name { color: var(--blue); text-shadow: 0 0 15px rgba(0, 229, 255, 0.5); }
+.logo:hover .logo-sub { color: var(--cream); }
+
+.nav { display: flex; gap: 32px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.nav a { transition: color 0.3s, text-shadow 0.3s; }
+.nav a:hover { color: var(--blue); text-shadow: 0 0 10px rgba(0,229,255,0.5); }
+
+/* Кнопка включения звука */
+.sound-toggle {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 100;
+  background: rgba(18, 11, 9, 0.85);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  user-select: none;
+}
+.sound-toggle:hover {
+  background: var(--blue);
+  color: var(--bg-dark);
+}
+.sound-toggle.active {
+  background: var(--blue);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+}
+
+/* Главный экран */
+.hero {
+  min-height: 100vh; padding: 160px 5vw 70px; position: relative;
+  display: flex; flex-direction: column; justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Живая амеба с дыханием */
+.orb {
+  position: absolute; 
+  width: 45vw; height: 45vw; max-width: 600px; max-height: 600px;
+  right: -5vw; top: 15vh; 
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18) 0%, rgba(0, 229, 255, 0.03) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  backdrop-filter: blur(6px);
+  z-index: 1;
+  animation: breatheAndMorph 10s ease-in-out infinite alternate;
+}
+
+@keyframes breatheAndMorph {
+  0% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: translate(0, 0) rotate(0deg) scale(0.92);
+    box-shadow: inset 0 0 40px rgba(0, 229, 255, 0.15), 0 10px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0.7;
+  }
+  35% {
+    border-radius: 40% 60% 70% 30% / 50% 60% 30% 60%;
+    transform: translate(-20px, 30px) rotate(100deg) scale(1.06);
+    box-shadow: inset 0 0 70px rgba(0, 229, 255, 0.35), 0 20px 60px rgba(0, 229, 255, 0.18);
+    opacity: 1;
+  }
+  70% {
+    border-radius: 70% 30% 40% 60% / 40% 70% 50% 40%;
+    transform: translate(30px, -15px) rotate(220deg) scale(0.96);
+    box-shadow: inset 0 0 45px rgba(0, 229, 255, 0.2), 0 12px 45px rgba(0, 0, 0, 0.6);
+    opacity: 0.8;
+  }
+  100% {
+    border-radius: 50% 50% 30% 70% / 60% 40% 60% 40%;
+    transform: translate(10px, 15px) rotate(320deg) scale(1.1);
+    box-shadow: inset 0 0 85px rgba(0, 229, 255, 0.4), 0 25px 75px rgba(0, 229, 255, 0.25);
+    opacity: 1;
+  }
+}
+
+.hero-top { position: relative; z-index: 2; }
+
+h1 { font: 600 clamp(54px, 11vw, 150px)/.85 "Space Grotesk"; letter-spacing: -5px; max-width: 1100px; margin-bottom: 20px; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,229,255,0.3); }
+
+.hero-copy { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; margin-top: 60px; max-width: 1100px; }
+.hero-copy p { max-width: 480px; color: var(--cream); font-size: 17px; line-height: 1.6; }
+
+/* МАГНИТНЫЙ КРУГЛЫЙ БЕЙДЖ С PLAY-КЛАВИШЕЙ */
+.magnetic-badge {
+  position: relative;
+  width: 135px;
+  height: 135px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 11, 9, 0.65);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.08);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+  user-select: none;
+  flex-shrink: 0;
+  will-change: transform;
+}
+
+.magnetic-badge:hover {
+  border-color: var(--blue);
+  box-shadow: 0 0 35px rgba(0, 229, 255, 0.35), inset 0 0 25px rgba(0, 229, 255, 0.15);
+}
+
+.badge-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: spinBadge 14s linear infinite;
+  pointer-events: none;
+}
+
+.magnetic-badge:hover .badge-ring {
+  animation-duration: 6s;
+}
+
+.badge-svg { width: 100%; height: 100%; }
+.badge-svg text {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 9.8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  fill: var(--cream);
+  text-transform: uppercase;
+}
+
+.badge-center {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+  z-index: 2;
+}
+
+.badge-play-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--blue);
+  fill: currentColor;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.35s ease;
+  display: block;
+}
+
+.magnetic-badge:hover .badge-center {
+  background: var(--blue);
+  transform: scale(1.12);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
+}
+
+.magnetic-badge:hover .badge-play-icon {
+  color: var(--bg-dark);
+  transform: scale(1.08);
+}
+
+.magnetic-badge:active { transform: scale(0.95); }
+
+@keyframes spinBadge {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Бегущая строка (Ghost & Glow) */
+.marquee {
+  background: rgba(18, 11, 9, 0.45);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  padding: 22px 0;
+  white-space: nowrap;
+  font: 700 clamp(15px, 2.2vw, 22px) "Space Grotesk", sans-serif;
+  letter-spacing: 4px;
+  position: relative;
+  z-index: 2;
+  margin: 50px 0 80px;
+  mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
+.marquee-track {
+  display: inline-block;
+  animation: scroll 24s linear infinite;
+}
+
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee span { margin: 0 25px; color: var(--cream); }
+.marquee span.highlight { color: var(--blue); text-shadow: 0 0 15px rgba(0, 229, 255, 0.5); }
+.marquee span.ghost { color: transparent; -webkit-text-stroke: 1px rgba(245, 238, 230, 0.35); transition: all 0.3s ease; }
+.marquee span.ghost:hover { -webkit-text-stroke: 1px var(--blue); color: var(--blue); }
+.marquee-dot { color: var(--blue); font-size: 14px; opacity: 0.6; }
+
+@keyframes scroll { to { transform: translateX(-50%) } }
+
+/* Стили карточек блоков */
+.section-card {
+  border-radius: 40px;
+  margin: 0 3vw 100px 3vw;
+  padding: 90px 5vw;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06); 
+  box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+  z-index: 2;
+}
+
+.bg-slate { background: linear-gradient(145deg, #18202c 0%, #0d121a 100%); }
+.bg-copper { background: linear-gradient(145deg, #2b1d19 0%, #170f0c 100%); }
+
+.section-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 1px; 
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  opacity: 0.6;
+}
+
+.section-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 40px; }
+.section-head h2 { font: 600 clamp(36px, 5vw, 75px)/1 "Space Grotesk"; letter-spacing: -3px; color: var(--cream); }
+
+/* =========================================
+   КИНОПЛЁНКА (БЕСШОВНАЯ 35MM)
+========================================= */
+.filmstrip-wrapper {
+  position: relative;
+  background: var(--film-bg);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 0 15px 40px rgba(0, 0, 0, 0.6);
+  padding: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
+}
+
+.film-sprockets-bar {
+  height: 32px;
+  background-color: #0c0807;
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  user-select: none;
+}
+
+.sprockets-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='38' height='32' viewBox='0 0 38 32' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='11' y='7' width='16' height='18' rx='4' fill='%23020202' stroke='rgba(255,255,255,0.1)' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: left center;
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.film-edge-code {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+.edge-code-track {
+  display: flex;
+  width: max-content;
+  animation: filmEdgeScroll 45s linear infinite;
+  will-change: transform;
+}
+
+.edge-code-group {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding-right: 30px;
+  font-family: "Space Grotesk", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--blue);
+  opacity: 0.75;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@keyframes filmEdgeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.film-track-area {
+  padding: 24px 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, rgba(30, 20, 16, 0.4) 0%, #060403 100%);
+  width: 100%;
+}
+
+.reels-track {
+  display: flex;
+  gap: 28px;
+  width: max-content;
+  align-items: center;
+  animation: filmFramesScroll 48s linear infinite;
+  will-change: transform;
+}
+
+@keyframes filmFramesScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.filmstrip-wrapper:hover .reels-track,
+.filmstrip-wrapper:hover .edge-code-track,
+.filmstrip-wrapper.is-paused .reels-track,
+.filmstrip-wrapper.is-paused .edge-code-track {
+  animation-play-state: paused !important;
+}
+
+/* Кадры киноплёнки */
+.reel { 
+  position: relative; 
+  border-radius: 16px; 
+  overflow: hidden; 
+  padding: 16px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-start; 
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease; 
+  border: 2px solid rgba(255, 255, 255, 0.08); 
+  background: #0d0908; 
+  flex-shrink: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+}
+
+.reel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.reel:hover, .reel.is-playing { 
+  transform: scale(1.03); 
+  border-color: var(--blue); 
+  box-shadow: 0 20px 45px rgba(0,0,0,0.8), 0 0 25px rgba(0, 229, 255, 0.35); 
+}
+
+/* 6 вертикальных (9:16) и 1 горизонтальное (16:9) */
+.reel.vertical { 
+  width: 285px; 
+  aspect-ratio: 9 / 16; 
+}
+
+.reel.horizontal { 
+  width: 570px; 
+  aspect-ratio: 16 / 9; 
+}
+
+.video-container { position: absolute; inset: 0; z-index: 1; background: #000; transition: opacity 0.5s ease; }
+.video-container video { 
+  width: 100%; height: 100%; 
+  object-fit: cover; 
+  pointer-events: none; opacity: 0.55; transition: opacity 0.4s ease; 
+}
+.reel:hover .video-container video, .reel.is-playing .video-container video { opacity: 0.95; }
+
+/* Минималистичный номер кадра без рамок */
+.reel-content { 
+  position: relative; 
+  z-index: 2; 
+  display: flex; 
+  align-items: flex-start; 
+  pointer-events: none; 
+}
+
+.reel small { 
+  font: 600 11px/1 "Space Grotesk", monospace; 
+  color: var(--blue); 
+  letter-spacing: 1.2px; 
+  opacity: 0.85;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 229, 255, 0.4); 
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+/* Обо мне */
+.about-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; }
+.about-big { font: 500 clamp(28px, 4vw, 55px)/1.1 "Space Grotesk"; letter-spacing: -2px; }
+.about-big span { color: var(--blue); }
+.about-text { color: var(--cream); opacity: 0.85; font-size: 17px; line-height: 1.8; margin-bottom: 30px; }
+.tags { display: flex; flex-wrap: wrap; gap: 10px; }
+.tag { border: 1px solid var(--blue-soft); color: var(--blue-soft); border-radius: 100px; padding: 10px 20px; font-size: 13px; font-weight: 500; transition: 0.3s; }
+.tag:hover { background: var(--blue); color: var(--bg-dark); }
+
+/* Пайплайн */
+.process { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 40px; 
+}
+
+.step { 
+  border-top: 1px solid rgba(158, 223, 243, 0.2); 
+  padding-top: 30px; 
+  transition: transform 0.4s ease, border-color 0.4s ease, opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.step:nth-child(1).reveal { transition-delay: 0.15s; }
+.step:nth-child(2).reveal { transition-delay: 0.4s; }
+.step:nth-child(3).reveal { transition-delay: 0.65s; }
+
+.step:hover { 
+  border-color: var(--blue); 
+  transform: translateY(-5px); 
+  transition-delay: 0s !important;
+}
+
+.step strong { 
+  font: 700 clamp(38px, 4.5vw, 52px) "Space Grotesk", sans-serif; 
+  color: var(--blue);
+  display: inline-block;
+  letter-spacing: -1px;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+  transition: all 0.3s ease;
+}
+
+.step:hover strong { 
+  transform: translateY(-3px) scale(1.05);
+  text-shadow: 0 0 30px rgba(0, 229, 255, 0.7);
+}
+
+.step h3 { margin: 18px 0 12px; font-size: 22px; font-family: "Space Grotesk"; }
+.step p { color: var(--cream); opacity: 0.85; font-size: 15px; line-height: 1.7; }
+
+/* Контакты */
+.contact-wrap { min-height: 40vh; display: flex; flex-direction: column; justify-content: center; }
+
+.contact-wrap h2 { 
+  font: 600 clamp(44px, 8vw, 110px)/0.95 "Space Grotesk", sans-serif; 
+  letter-spacing: -3px; 
+  margin: 0; 
+}
+
+.contact-wrap h2 span { 
+  color: transparent; 
+  -webkit-text-stroke: 1.5px var(--cream); 
+  letter-spacing: -1px;
+  transition: all 0.3s ease;
+}
+
+.contact-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 60px; }
+
+/* Ссылка «Обсудить задачу» */
+.mail { 
+  font-size: clamp(20px, 4vw, 40px); 
+  font-family: "Space Grotesk", sans-serif; 
+  font-weight: 500; 
+  padding-bottom: 6px; 
+  color: var(--cream); 
+  display: inline-block;
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); 
+  position: relative;
+}
+
+.mail::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--blue);
+  box-shadow: 0 0 8px var(--blue);
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mail:hover { 
+  color: var(--blue); 
+  padding-right: 12px; 
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8), 0 0 40px rgba(0, 229, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.mail:hover::after {
+  height: 2.5px;
+  box-shadow: 0 0 16px var(--blue), 0 0 30px var(--blue);
+}
+
+.mail:active {
+  transform: scale(0.97);
+  text-shadow: 0 0 30px rgba(0, 229, 255, 1);
+}
+
+/* Ссылки на соцсети */
+.socials { 
+  display: flex; 
+  gap: 30px; 
+  font-size: 15px; 
+  font-weight: 600; 
+  text-transform: uppercase; 
+  letter-spacing: 1.5px; 
+}
+
+.socials a { 
+  position: relative; 
+  padding: 6px 0;
+  color: var(--cream);
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); 
+}
+
+.socials a::after { 
+  content: ''; 
+  position: absolute; 
+  bottom: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 2px; 
+  background: var(--blue); 
+  transform: scaleX(0); 
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease; 
+  box-shadow: 0 0 12px var(--blue);
+}
+
+.socials a:hover { 
+  color: var(--blue); 
+  text-shadow: 0 0 16px rgba(0, 229, 255, 0.8), 0 0 32px rgba(0, 229, 255, 0.4);
+  transform: translateY(-3px);
+}
+
+.socials a:hover::after { 
+  transform: scaleX(1); 
+  transform-origin: left;
+}
+
+.socials a:active {
+  transform: scale(0.93) translateY(0);
+  text-shadow: 0 0 28px rgba(0, 229, 255, 1);
+}
+
+footer { background: transparent; color: var(--muted); padding: 30px 5vw; display: flex; justify-content: space-between; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; position: relative; z-index: 2; margin-bottom: 20px; }
+
+/* Анимации при скролле */
+.reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* =========================================
+   МОБИЛЬНАЯ АДАПТАЦИЯ (ТЕЛЕФОНЫ И ПЛАНШЕТЫ)
+========================================= */
+@media(max-width: 768px) {
+  * { cursor: auto !important; } 
+  .cursor-dot, .cursor-outline { display: none !important; }
+
+  nav { padding: 14px 5vw; }
+  .logo-name { font-size: 21px; }
+  .logo-sub { font-size: 9.5px; }
+  .nav { gap: 14px; font-size: 12px; }
+  .nav a:nth-child(3) { display: none; }
+
+  .hero { 
+    padding: 130px 5vw 40px; 
+    min-height: 85vh;
+  }
+  
+  h1 { 
+    font-size: clamp(40px, 12vw, 68px); 
+    letter-spacing: -2px;
+    line-height: 0.95;
+    margin-bottom: 15px;
+  }
+
+  .hero-copy {
+    margin-top: 35px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 30px;
+  }
+
+  .hero-copy p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .magnetic-badge {
+    width: 115px;
+    height: 115px;
+  }
+
+  .badge-center {
+    width: 44px;
+    height: 44px;
+  }
+
+  .badge-play-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .badge-svg text {
+    font-size: 8.8px;
+    letter-spacing: 1.8px;
+  }
+
+  .orb { 
+    width: 85vw; 
+    height: 85vw; 
+    max-width: 320px; 
+    max-height: 320px; 
+    right: -10vw; 
+    top: 12vh; 
+    opacity: 0.6;
+  }
+
+  .section-card { 
+    margin: 0 3vw 45px 3vw; 
+    padding: 45px 4vw; 
+    border-radius: 24px; 
+  }
+
+  .section-head {
+    margin-bottom: 25px;
+    padding-bottom: 12px;
+  }
+
+  .section-head h2 {
+    font-size: clamp(30px, 8vw, 42px);
+    letter-spacing: -2px;
+  }
+
+  /* Адаптив киноплёнки */
+  .filmstrip-wrapper {
+    border-radius: 16px;
+  }
+
+  .film-sprockets-bar {
+    height: 26px;
+  }
+
+  .film-track-area {
+    padding: 16px 0;
+  }
+
+  .reels-track {
+    gap: 16px;
+    animation-duration: 35s;
+  }
+
+  .edge-code-track {
+    animation-duration: 35s;
+  }
+
+  .reel.vertical { 
+    width: 230px; 
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .reel.horizontal { 
+    width: 410px; 
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .about-grid { 
+    grid-template-columns: 1fr; 
+    gap: 30px; 
+  }
+
+  .about-big {
+    font-size: clamp(24px, 6vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -1px;
+  }
+
+  .about-text {
+    font-size: 15px;
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+
+  .tag {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .process { 
+    grid-template-columns: 1fr; 
+    gap: 24px; 
+  }
+
+  .step {
+    padding-top: 15px;
+  }
+
+  .step strong {
+    font-size: 38px;
+  }
+
+  .step h3 {
+    font-size: 18px;
+    margin: 10px 0 6px;
+  }
+
+  .contact-wrap h2 {
+    font-size: clamp(32px, 8.5vw, 52px);
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  .contact-wrap h2 span {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--cream);
+    letter-spacing: 0;
+    display: inline-block;
+  }
+
+  .contact-row { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 25px; 
+    margin-top: 35px;
+  }
+
+  .mail {
+    font-size: clamp(18px, 5vw, 24px);
+  }
+
+  .socials {
+    gap: 20px;
+    font-size: 14px;
+  }
+
+  footer { 
+    flex-direction: column; 
+    gap: 15px; 
+    text-align: center; 
+    justify-content: center;
+    padding: 20px 5vw;
+  }
+  
+  .sound-toggle { 
+    bottom: 20px; 
+    right: 20px; 
+    padding: 8px 16px; 
+    font-size: 11px; 
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ЭКРАН ЗАГРУЗКИ (ЛОГОТИП С ВЫРАВНИВАНИЕМ И ЛАЗЕРОМ) -->
+<div id="preloader">
+  <div class="preloader-content">
+    <div class="preloader-brand">
+      <span class="pre-name">Anastasiia</span>
+      <span class="pre-sub">[ by.pribytkova]</span>
+    </div>
+    <div class="preloader-line"></div>
+  </div>
+</div>
+
+<!-- Слой шума и сетки -->
+<div class="noise"></div>
+<div class="grid-bg"></div>
+
+<!-- Кастомный курсор -->
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+
+<!-- Кнопка включения звука -->
+<button class="sound-toggle hover-target" id="soundBtn">Sound: OFF</button>
+
+<nav id="navbar">
+  <!-- ЛОГОТИП -->
+  <a class="logo hover-target" href="#">
+    <span class="logo-name">Anastasiia</span>
+    <span class="logo-sub">[ by.pribytkova]</span>
+  </a>
+  <div class="nav">
+    <a href="#reels" class="hover-target">Работы</a>
+    <a href="#about" class="hover-target">Обо мне</a>
+    <a href="#process" class="hover-target">Пайплайн</a>
+    <a href="#contact" class="hover-target">Контакты</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="orb"></div>
+  
+  <div class="hero-top reveal">
+    <h1>Я монтирую<br><span>динамику.</span></h1>
+    <div class="hero-copy">
+      <p>Создаю видео, которые держат зрителя до последней секунды. Сложные таймлайны, уверенный бит и кадры, которые хочется пересматривать.</p>
+      
+      <!-- МАГНИТНЫЙ БЕЙДЖ С КНОПКОЙ PLAY -->
+      <a class="magnetic-badge hover-target" href="#reels" id="heroBadge" aria-label="Смотреть работы">
+        <div class="badge-ring">
+          <svg viewBox="0 0 140 140" class="badge-svg">
+            <path id="badgeTextPath" d="M 70, 70 m -48, 0 a 48,48 0 1,1 96,0 a 48,48 0 1,1 -96,0" fill="none" />
+            <text>
+              <textPath href="#badgeTextPath" startOffset="0%">
+                ✦ СМОТРЕТЬ РАБОТЫ ✦ ВЫБРАТЬ КЕЙС ✦
+              </textPath>
+            </text>
+          </svg>
+        </div>
+        <div class="badge-center">
+          <svg class="badge-play-icon" viewBox="0 0 24 24">
+            <path d="M8.2 5.6C8.2 4.6 9.3 4.0 10.1 4.5L19.4 10.9C20.2 11.4 20.2 12.6 19.4 13.1L10.1 19.5C9.3 20.0 8.2 19.4 8.2 18.4Z"/>
+          </svg>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</header>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <span class="highlight">DYNAMIC EDIT</span><span class="marquee-dot">✦</span>
+    <span class="ghost">SOUND DESIGN</span><span class="marquee-dot">✦</span>
+    <span>COLOR GRADING</span><span class="marquee-dot">✦</span>
+    <span class="highlight">SHORT FORM</span><span class="marquee-dot">✦</span>
+    <span class="ghost">DRONE AERIAL</span><span class="marquee-dot">✦</span>
+    <span>STORYTELLING</span><span class="marquee-dot">✦</span>
+    <span class="highlight">DYNAMIC EDIT</span><span class="marquee-dot">✦</span>
+    <span class="ghost">SOUND DESIGN</span><span class="marquee-dot">✦</span>
+    <span>COLOR GRADING</span><span class="marquee-dot">✦</span>
+    <span class="highlight">SHORT FORM</span><span class="marquee-dot">✦</span>
+    <span class="ghost">DRONE AERIAL</span><span class="marquee-dot">✦</span>
+    <span>STORYTELLING</span><span class="marquee-dot">✦</span>
+  </div>
+</div>
+
+<!-- =========================================
+     БЛОК «ПРОЕКТЫ» (МИНИМАЛИСТИЧНЫЕ ИНДЕКСЫ БЕЗ РАМОК)
+========================================= -->
+<section class="section-card bg-copper" id="reels">
+  <div class="section-head reveal">
+    <h2>Проекты</h2>
+  </div>
+  
+  <div class="filmstrip-wrapper reveal" id="filmstripWrapper">
+    
+    <!-- Верхняя перфорационная дорожка -->
+    <div class="film-sprockets-bar">
+      <div class="sprockets-pattern"></div>
+      <div class="film-edge-code">
+        <div class="edge-code-track">
+          <div class="edge-code-group">
+            <span>35MM COLOR FILM</span>✦<span>REC [●] 24.00 FPS</span>✦<span>TC 00:14:22:08</span>✦<span>KODAK VISION3 500T</span>✦<span>FRAME SYNC</span>✦<span>ISO 800</span>✦<span>EASTMAN KODAK CO.</span>✦<span>DA VINCI RESOLVE</span>✦
+          </div>
+          <div class="edge-code-group" aria-hidden="true">
+            <span>35MM COLOR FILM</span>✦<span>REC [●] 24.00 FPS</span>✦<span>TC 00:14:22:08</span>✦<span>KODAK VISION3 500T</span>✦<span>FRAME SYNC</span>✦<span>ISO 800</span>✦<span>EASTMAN KODAK CO.</span>✦<span>DA VINCI RESOLVE</span>✦
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Область прокрутки кадров киноплёнки -->
+    <div class="film-track-area">
+      <div class="reels-track" id="reelsTrack">
+        
+        <!-- ВИДЕО 01 (Вертикальное) -->
+        <div class="reel vertical hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/ver_car.MP4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 01</small>
+          </div>
+        </div>
+
+        <!-- ВИДЕО 02 (Вертикальное) -->
+        <div class="reel vertical hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/ver_cartoon.MP4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 02</small>
+          </div>
+        </div>
+
+        <!-- ВИДЕО 03 (Вертикальное) -->
+        <div class="reel vertical hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/ver_house.MP4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 03</small>
+          </div>
+        </div>
+
+        <!-- ВИДЕО 04 (Горизонтальное 16:9) -->
+        <div class="reel horizontal hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/hor_map.MP4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 04</small>
+          </div>
+        </div>
+
+        <!-- ВИДЕО 05 (Вертикальное) -->
+        <div class="reel vertical hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/ver_new_version.mp4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 05</small>
+          </div>
+        </div>
+
+        <!-- ВИДЕО 06 (Вертикальное) -->
+        <div class="reel vertical hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/ver_workflow.MP4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 06</small>
+          </div>
+        </div>
+
+        <!-- ВИДЕО 07 (Вертикальное) -->
+        <div class="reel vertical hover-target">
+          <div class="video-container">
+            <video class="portfolio-video" loop playsinline preload="metadata">
+              <source src="https://pub-cfa2019610bd4fdbad53fd6200ac2954.r2.dev/media/ver_you.MP4#t=0.001" type="video/mp4">
+            </video>
+          </div>
+          <div class="reel-content">
+            <small>▶ 07</small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Нижняя перфорационная дорожка -->
+    <div class="film-sprockets-bar">
+      <div class="sprockets-pattern"></div>
+      <div class="film-edge-code">
+        <div class="edge-code-track">
+          <div class="edge-code-group">
+            <span>SAFETY FILM</span>✦<span>OPTICAL AUDIO TRACK</span>✦<span>ISO 800</span>✦<span>EASTMAN KODAK CO.</span>✦<span>DA VINCI RESOLVE</span>✦<span>35MM COLOR FILM</span>✦<span>PREMIERE PRO</span>✦<span>PROXY WORKFLOW</span>✦
+          </div>
+          <div class="edge-code-group" aria-hidden="true">
+            <span>SAFETY FILM</span>✦<span>OPTICAL AUDIO TRACK</span>✦<span>ISO 800</span>✦<span>EASTMAN KODAK CO.</span>✦<span>DA VINCI RESOLVE</span>✦<span>35MM COLOR FILM</span>✦<span>PREMIERE PRO</span>✦<span>PROXY WORKFLOW</span>✦
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Обо мне (Синий) -->
+<section class="section-card bg-slate" id="about">
+  <div class="section-head reveal" style="margin-bottom: 40px; padding-bottom: 10px; border-color: rgba(255,255,255,0.1);">
+    <h2 style="font-size: clamp(30px, 4vw, 50px);">Обо мне</h2>
+  </div>
+  <div class="about-grid">
+    <div class="about-big reveal">Хороший монтаж невидим. <span>Видна только история.</span></div>
+    <div class="reveal">
+      <p class="about-text">Я собираю проекты любой сложности: от пролетов на дроне до плотного экшена. Оптимизированный воркфлоу на базе процессора i5-12400F и работа с .LRF proxy-файлами позволяют мне монтировать тяжелые таймлайны без потери скорости и качества.</p>
+      <div class="tags">
+        <span class="tag">DaVinci Resolve</span>
+        <span class="tag">Premiere Pro</span>
+        <span class="tag">Blender (3D)</span>
+        <span class="tag">DJI Mini 4 Pro</span>
+        <span class="tag">Sound Design</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Пайплайн (Медный) -->
+<section class="section-card bg-copper" id="process">
+  <div class="section-head reveal" style="border-color: rgba(255,255,255,0.1);">
+    <h2>Пайплайн</h2>
+  </div>
+  <div class="process">
+    <div class="step reveal"><strong>01</strong><h3>Материал</h3><p>Отсмотр исходников, генерация прокси для плавности и поиск главного настроения ролика.</p></div>
+    <div class="step reveal"><strong>02</strong><h3>Сборка</h3><p>Нарезка rough cut, синхронизация с саунд-дизайном, создание плотной и логичной динамики.</p></div>
+    <div class="step reveal"><strong>03</strong><h3>Финализация</h3><p>Глубокая цветокоррекция, полировка переходов, графика и финальный рендер.</p></div>
+  </div>
+</section>
+
+<!-- Контакты (Синий) -->
+<section class="section-card bg-slate" id="contact">
+  <div class="contact-wrap">
+    <h2 class="reveal">Готов к <span>проекту?</span></h2>
+    <div class="contact-row reveal">
+      <a class="mail hover-target" href="mailto:hello@example.com">Обсудить задачу ↗</a>
+      <div class="socials">
+        <a href="#" class="hover-target">Telegram ↗</a>
+        <a href="#" class="hover-target">Instagram ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 Anastasiia Pribytkova</span>
+</footer>
+
+<script>
+// ЛОГИКА ПРЕЛОАДЕРА
+window.addEventListener('load', () => {
+  const preloader = document.getElementById('preloader');
+  setTimeout(() => {
+    preloader.classList.add('loaded');
+  }, 1200);
+});
+
+// Появление при скролле
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting) entry.target.classList.add('visible');
+  });
+},{threshold: 0.12});
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// АВТОМАТИЧЕСКОЕ КЛОНИРОВАНИЕ ДЛЯ БЕСШОВНОЙ КАРУСЕЛИ
+const reelsTrack = document.getElementById('reelsTrack');
+if (reelsTrack) {
+  const originalReels = Array.from(reelsTrack.children);
+  originalReels.forEach(reel => {
+    const clone = reel.cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    reelsTrack.appendChild(clone);
+  });
+}
+
+// Кастомный курсор
+const cursorDot = document.querySelector('.cursor-dot');
+const cursorOutline = document.querySelector('.cursor-outline');
+
+if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  window.addEventListener('mousemove', (e) => {
+    const posX = e.clientX;
+    const posY = e.clientY;
+    
+    cursorDot.style.left = `${posX}px`;
+    cursorDot.style.top = `${posY}px`;
+    
+    cursorOutline.animate({
+      left: `${posX}px`,
+      top: `${posY}px`
+    }, { duration: 500, fill: "forwards" });
+  });
+
+  document.querySelectorAll('a, button, .hover-target, .reel').forEach(target => {
+    target.addEventListener('mouseenter', () => {
+      cursorOutline.style.width = '60px';
+      cursorOutline.style.height = '60px';
+      cursorOutline.style.backgroundColor = 'rgba(0, 229, 255, 0.1)';
+    });
+    target.addEventListener('mouseleave', () => {
+      cursorOutline.style.width = '40px';
+      cursorOutline.style.height = '40px';
+      cursorOutline.style.backgroundColor = 'transparent';
+    });
+  });
+}
+
+// МАГНИТНЫЙ ЭФФЕКТ ДЛЯ БЕЙДЖА
+const heroBadge = document.getElementById('heroBadge');
+if (heroBadge && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  heroBadge.addEventListener('mousemove', (e) => {
+    const rect = heroBadge.getBoundingClientRect();
+    const badgeCenterX = rect.left + rect.width / 2;
+    const badgeCenterY = rect.top + rect.height / 2;
+    const deltaX = (e.clientX - badgeCenterX) * 0.35;
+    const deltaY = (e.clientY - badgeCenterY) * 0.35;
+    heroBadge.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+  });
+
+  heroBadge.addEventListener('mouseleave', () => {
+    heroBadge.style.transform = 'translate(0px, 0px)';
+  });
+}
+
+// ЛОГИКА ЗВУКА И СИНХРОНИЗИРОВАННОГО ВОСПРОИЗВЕДЕНИЯ КИНОПЛЁНКИ
+const allReels = document.querySelectorAll('.reel');
+const filmstripWrapper = document.getElementById('filmstripWrapper');
+const soundBtn = document.getElementById('soundBtn');
+let isSoundEnabled = false;
+
+const allVideos = document.querySelectorAll('.portfolio-video');
+allVideos.forEach(v => {
+  v.volume = 0;
+  v.muted = true;
+  v.addEventListener('loadedmetadata', () => {
+    if (v.currentTime === 0) {
+      v.currentTime = 0.001;
+    }
+  });
+});
+
+soundBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  isSoundEnabled = !isSoundEnabled;
+  if(isSoundEnabled) {
+    soundBtn.textContent = 'Sound: ON';
+    soundBtn.classList.add('active');
+    allVideos.forEach(v => { v.muted = false; });
+  } else {
+    soundBtn.textContent = 'Sound: OFF';
+    soundBtn.classList.remove('active');
+    allVideos.forEach(v => { v.muted = true; v.volume = 0; });
+  }
+});
+
+function fadeInAudio(videoElement) {
+  if(!isSoundEnabled) return;
+  videoElement.volume = 0;
+  let vol = 0;
+  const fadeAudio = setInterval(() => {
+    if (vol < 0.9) {
+      vol += 0.1;
+      videoElement.volume = vol.toFixed(1);
+    } else {
+      clearInterval(fadeAudio);
+    }
+  }, 50);
+}
+
+function fadeOutAudio(videoElement, callback) {
+  if(!isSoundEnabled) {
+    if(callback) callback();
+    return;
+  }
+  let vol = videoElement.volume;
+  const fadeAudio = setInterval(() => {
+    if (vol > 0.1) {
+      vol -= 0.1;
+      videoElement.volume = vol.toFixed(1);
+    } else {
+      clearInterval(fadeAudio);
+      videoElement.volume = 0;
+      if(callback) callback();
+    }
+  }, 30);
+}
+
+// Управление киноплёнкой (Desktop Hover & Mobile Tap)
+allReels.forEach(reel => {
+  const video = reel.querySelector('.portfolio-video');
+  if(!video) return;
+
+  // 1. Десктоп
+  reel.addEventListener('mouseenter', () => {
+    filmstripWrapper?.classList.add('is-paused');
+    reel.classList.add('is-playing');
+    video.play().then(() => {
+      fadeInAudio(video);
+    }).catch(() => {});
+  });
+  
+  reel.addEventListener('mouseleave', () => {
+    reel.classList.remove('is-playing');
+    fadeOutAudio(video, () => {
+      video.pause();
+    });
+    const anyPlaying = Array.from(allVideos).some(v => !v.paused);
+    if (!anyPlaying) {
+      filmstripWrapper?.classList.remove('is-paused');
+    }
+  });
+
+  // 2. Мобильные устройства
+  reel.addEventListener('click', () => {
+    if (video.paused) {
+      allVideos.forEach(otherVideo => {
+        if(otherVideo !== video) {
+          otherVideo.pause();
+          otherVideo.closest('.reel')?.classList.remove('is-playing');
+        }
+      });
+
+      filmstripWrapper?.classList.add('is-paused');
+      reel.classList.add('is-playing');
+      video.play().then(() => {
+        fadeInAudio(video);
+      }).catch(() => {});
+    } else {
+      reel.classList.remove('is-playing');
+      fadeOutAudio(video, () => {
+        video.pause();
+        filmstripWrapper?.classList.remove('is-paused');
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
