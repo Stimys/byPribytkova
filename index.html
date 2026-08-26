@@ -416,7 +416,7 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
 .section-head h2 { font: 600 clamp(36px, 5vw, 75px)/1 "Space Grotesk"; letter-spacing: -3px; color: var(--cream); }
 
 /* =========================================
-   КИНОПЛЁНКА (БЕСШОВНАЯ 35MM)
+   КИНОПЛЁНКА (ИНТЕРАКТИВНАЯ 35MM)
 ========================================= */
 .filmstrip-wrapper {
   position: relative;
@@ -428,6 +428,7 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
+  user-select: none;
 }
 
 .film-sprockets-bar {
@@ -459,12 +460,12 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
   width: 100%;
   overflow: hidden;
   display: flex;
+  pointer-events: none;
 }
 
 .edge-code-track {
   display: flex;
   width: max-content;
-  animation: filmEdgeScroll 45s linear infinite;
   will-change: transform;
 }
 
@@ -484,16 +485,18 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
   flex-shrink: 0;
 }
 
-@keyframes filmEdgeScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
+/* Область перетаскивания и свайпов */
 .film-track-area {
   padding: 24px 0;
   overflow: hidden;
   background: radial-gradient(ellipse at center, rgba(30, 20, 16, 0.4) 0%, #060403 100%);
   width: 100%;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.film-track-area.is-dragging {
+  cursor: grabbing;
 }
 
 .reels-track {
@@ -501,20 +504,7 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
   gap: 28px;
   width: max-content;
   align-items: center;
-  animation: filmFramesScroll 48s linear infinite;
   will-change: transform;
-}
-
-@keyframes filmFramesScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.filmstrip-wrapper:hover .reels-track,
-.filmstrip-wrapper:hover .edge-code-track,
-.filmstrip-wrapper.is-paused .reels-track,
-.filmstrip-wrapper.is-paused .edge-code-track {
-  animation-play-state: paused !important;
 }
 
 /* Кадры киноплёнки */
@@ -531,6 +521,8 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
   background: #0d0908; 
   flex-shrink: 0;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .reel::after {
@@ -560,7 +552,7 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
   aspect-ratio: 16 / 9; 
 }
 
-.video-container { position: absolute; inset: 0; z-index: 1; background: #000; transition: opacity 0.5s ease; }
+.video-container { position: absolute; inset: 0; z-index: 1; background: #000; transition: opacity 0.5s ease; pointer-events: none; }
 .video-container video { 
   width: 100%; height: 100%; 
   object-fit: cover; 
@@ -568,7 +560,7 @@ h1 span { color: var(--blue); font-style: italic; text-shadow: 0 0 40px rgba(0,2
 }
 .reel:hover .video-container video, .reel.is-playing .video-container video { opacity: 0.95; }
 
-/* Минималистичный номер кадра без рамок */
+/* Минималистичный номер кадра */
 .reel-content { 
   position: relative; 
   z-index: 2; 
@@ -850,11 +842,6 @@ footer { background: transparent; color: var(--muted); padding: 30px 5vw; displa
 
   .reels-track {
     gap: 16px;
-    animation-duration: 35s;
-  }
-
-  .edge-code-track {
-    animation-duration: 35s;
   }
 
   .reel.vertical { 
@@ -1042,7 +1029,7 @@ footer { background: transparent; color: var(--muted); padding: 30px 5vw; displa
 </div>
 
 <!-- =========================================
-     БЛОК «ПРОЕКТЫ» (МИНИМАЛИСТИЧНЫЕ ИНДЕКСЫ БЕЗ РАМОК)
+     БЛОК «ПРОЕКТЫ» (ИНТЕРАКТИВНАЯ КАРУСЕЛЬ С DRAG/SWIPE)
 ========================================= -->
 <section class="section-card bg-copper" id="reels">
   <div class="section-head reveal">
@@ -1066,8 +1053,8 @@ footer { background: transparent; color: var(--muted); padding: 30px 5vw; displa
       </div>
     </div>
 
-    <!-- Область прокрутки кадров киноплёнки -->
-    <div class="film-track-area">
+    <!-- Область интерактивной киноплёнки -->
+    <div class="film-track-area" id="filmTrackArea">
       <div class="reels-track" id="reelsTrack">
         
         <!-- ВИДЕО 01 (Вертикальное) -->
@@ -1302,9 +1289,118 @@ if (heroBadge && window.matchMedia('(hover: hover) and (pointer: fine)').matches
   });
 }
 
-// ЛОГИКА ЗВУКА И СИНХРОНИЗИРОВАННОГО ВОСПРОИЗВЕДЕНИЯ КИНОПЛЁНКИ
-const allReels = document.querySelectorAll('.reel');
+// =========================================
+// ДВИЖОК КАРУСЕЛИ: АВТОСКРОЛЛ + DRAG & SWIPE + ТАЧПАД
+// =========================================
+const filmTrackArea = document.getElementById('filmTrackArea');
 const filmstripWrapper = document.getElementById('filmstripWrapper');
+const edgeCodeTracks = document.querySelectorAll('.edge-code-track');
+
+let positionX = 0;
+let autoSpeed = 48; // пикселей в секунду
+let isPaused = false;
+let isDragging = false;
+let startPointerX = 0;
+let dragStartPosition = 0;
+let hasDragged = false;
+let halfWidth = 0;
+
+function calculateDimensions() {
+  if (reelsTrack) {
+    halfWidth = reelsTrack.scrollWidth / 2;
+  }
+}
+window.addEventListener('load', calculateDimensions);
+window.addEventListener('resize', calculateDimensions);
+
+// Единый цикл анимации (requestAnimationFrame)
+let lastTimestamp = performance.now();
+function renderCarousel(now) {
+  const delta = (now - lastTimestamp) / 1000;
+  lastTimestamp = now;
+
+  if (!isPaused && !isDragging) {
+    positionX -= autoSpeed * delta;
+  }
+
+  // Бесшовный бесконечный цикл в обе стороны
+  if (halfWidth > 0) {
+    while (positionX <= -halfWidth) positionX += halfWidth;
+    while (positionX > 0) positionX -= halfWidth;
+  }
+
+  // Обновление позиции видеокадров
+  if (reelsTrack) {
+    reelsTrack.style.transform = `translate3d(${positionX}px, 0, 0)`;
+  }
+
+  // Синхронизация таймкода киноплёнки
+  edgeCodeTracks.forEach(track => {
+    const trackHalf = track.scrollWidth / 2;
+    let trackPos = halfWidth > 0 ? (positionX * (trackHalf / halfWidth)) : positionX;
+    if (trackHalf > 0) {
+      while (trackPos <= -trackHalf) trackPos += trackHalf;
+      while (trackPos > 0) trackPos -= trackHalf;
+    }
+    track.style.transform = `translate3d(${trackPos}px, 0, 0)`;
+  });
+
+  requestAnimationFrame(renderCarousel);
+}
+requestAnimationFrame(renderCarousel);
+
+// Обработка Drag мышкой и Swipe пальцем (Pointer Events)
+if (filmTrackArea) {
+  filmTrackArea.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    startPointerX = e.clientX;
+    dragStartPosition = positionX;
+    hasDragged = false;
+    filmTrackArea.classList.add('is-dragging');
+    filmTrackArea.setPointerCapture(e.pointerId);
+  });
+
+  filmTrackArea.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const diff = e.clientX - startPointerX;
+    if (Math.abs(diff) > 4) {
+      hasDragged = true;
+    }
+    positionX = dragStartPosition + diff;
+  });
+
+  const stopDragging = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    filmTrackArea.classList.remove('is-dragging');
+    try {
+      filmTrackArea.releasePointerCapture(e.pointerId);
+    } catch(err) {}
+  };
+
+  filmTrackArea.addEventListener('pointerup', stopDragging);
+  filmTrackArea.addEventListener('pointercancel', stopDragging);
+
+  // Скролл тачпадом (горизонтальный жест двумя пальцами)
+  filmTrackArea.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+      e.preventDefault();
+      positionX -= (e.deltaX || e.deltaY);
+    }
+  }, { passive: false });
+
+  // Пауза при наведении мыши на десктопе
+  filmTrackArea.addEventListener('mouseenter', () => { isPaused = true; });
+  filmTrackArea.addEventListener('mouseleave', () => {
+    const anyVideoPlaying = Array.from(document.querySelectorAll('.portfolio-video')).some(v => !v.paused);
+    if (!anyVideoPlaying) isPaused = false;
+  });
+}
+
+// =========================================
+// ЛОГИКА ЗВУКА И ВОСПРОИЗВЕДЕНИЯ ВИДЕО
+// =========================================
+const allReels = document.querySelectorAll('.reel');
 const soundBtn = document.getElementById('soundBtn');
 let isSoundEnabled = false;
 
@@ -1365,14 +1461,14 @@ function fadeOutAudio(videoElement, callback) {
   }, 30);
 }
 
-// Управление киноплёнкой (Desktop Hover & Mobile Tap)
+// Управление воспроизведением (Desktop Hover & Mobile Tap)
 allReels.forEach(reel => {
   const video = reel.querySelector('.portfolio-video');
   if(!video) return;
 
-  // 1. Десктоп
+  // 1. Десктоп (воспроизведение при наведении)
   reel.addEventListener('mouseenter', () => {
-    filmstripWrapper?.classList.add('is-paused');
+    isPaused = true;
     reel.classList.add('is-playing');
     video.play().then(() => {
       fadeInAudio(video);
@@ -1385,13 +1481,15 @@ allReels.forEach(reel => {
       video.pause();
     });
     const anyPlaying = Array.from(allVideos).some(v => !v.paused);
-    if (!anyPlaying) {
-      filmstripWrapper?.classList.remove('is-paused');
+    if (!anyPlaying && !filmTrackArea.matches(':hover')) {
+      isPaused = false;
     }
   });
 
-  // 2. Мобильные устройства
-  reel.addEventListener('click', () => {
+  // 2. Мобильные устройства (тап без перетаскивания)
+  reel.addEventListener('click', (e) => {
+    if (hasDragged) return; // Игнорировать клик, если пользователь свайпал ленту
+
     if (video.paused) {
       allVideos.forEach(otherVideo => {
         if(otherVideo !== video) {
@@ -1400,7 +1498,7 @@ allReels.forEach(reel => {
         }
       });
 
-      filmstripWrapper?.classList.add('is-paused');
+      isPaused = true;
       reel.classList.add('is-playing');
       video.play().then(() => {
         fadeInAudio(video);
@@ -1409,7 +1507,7 @@ allReels.forEach(reel => {
       reel.classList.remove('is-playing');
       fadeOutAudio(video, () => {
         video.pause();
-        filmstripWrapper?.classList.remove('is-paused');
+        isPaused = false;
       });
     }
   });
