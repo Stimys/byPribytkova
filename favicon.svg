@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Неоновое свечение -->
+    <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#00e5ff" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Базовый тёмный фон карточки -->
+  <rect width="64" height="64" rx="14" fill="#120b09"/>
+
+  <!-- Тонкая рамка в стиле видеокадров -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="rgba(158, 223, 243, 0.18)" stroke-width="1.5"/>
+
+  <!-- Перфорация 35mm-плёнки по правому краю -->
+  <rect x="54" y="10" width="4" height="6" rx="1.5" fill="#060403" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+  <rect x="54" y="22" width="4" height="6" rx="1.5" fill="#060403" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+  <rect x="54" y="36" width="4" height="6" rx="1.5" fill="#060403" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+  <rect x="54" y="48" width="4" height="6" rx="1.5" fill="#060403" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+
+  <!-- Символ "A" с кинематографичной засечкой -->
+  <text x="26" y="45"
+        font-family="'Space Grotesk', 'DM Sans', sans-serif"
+        font-size="34"
+        font-weight="700"
+        fill="#00e5ff"
+        text-anchor="middle"
+        filter="url(#cyanGlow)">A</text>
+
+  <!-- Фирменная точка / искра бренда -->
+  <circle cx="43" cy="43" r="2.5" fill="#f5eee6"/>
+</svg>
